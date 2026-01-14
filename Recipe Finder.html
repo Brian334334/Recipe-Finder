@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Recipe Finder</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input {
+      width: 80%;
+      padding: 12px;
+      margin: 15px 0;
+      border: 2px solid #ff5722;
+      border-radius: 8px;
+      outline: none;
+      transition: 0.3s;
+      font-size: 1rem;
+    }
+
+    input:focus {
+      border-color: #e64a19;
+      box-shadow: 0 0 8px rgba(255,87,34,0.5);
+    }
+
+    button {
+      padding: 12px 25px;
+      background: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #e64a19;
+      transform: scale(1.05);
+    }
+
+    #results {
+      margin-top: 25px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .recipe {
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+      text-align: left;
+    }
+
+    .recipe:hover {
+      transform: translateY(-5px);
+    }
+
+    .recipe h3 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      color: #444;
+    }
+
+    .recipe img {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .recipe p {
+      font-size: 0.95rem;
+      color: #555;
+      line-height: 1.4;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🍳 Recipe Finder</h1>
+    <input type="text" id="ingredients" placeholder="Enter ingredients (e.g. tomato, rice)">
+    <button onclick="getRecipes()">Find Recipes</button>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    async function getRecipes() {
+      const ingredients = document.getElementById("ingredients").value;
+      if (!ingredients) {
+        alert("Please enter some ingredients!");
+        return;
+      }
+
+      const apiKey = "369274ace69f4cad93d994bbe2d3faa7"; 
+      const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredients}&number=3&apiKey=${apiKey}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        let resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = "";
+
+        if (data.length === 0) {
+          resultsDiv.innerHTML = "<p>No recipes found. Try different ingredients.</p>";
+          return;
+        }
+
+        for (let recipe of data) {
+          const infoUrl = `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${apiKey}`;
+          const infoResponse = await fetch(infoUrl);
+          const infoData = await infoResponse.json();
+
+          resultsDiv.innerHTML += `
+            <div class="recipe">
+              <h3>${recipe.title}</h3>
+              <img src="${recipe.image}" alt="${recipe.title}">
+              <p><strong>Instructions:</strong> ${infoData.instructions || "No instructions available."}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error(error);
+        document.getElementById("results").innerHTML = "<p>Error fetching recipes.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
